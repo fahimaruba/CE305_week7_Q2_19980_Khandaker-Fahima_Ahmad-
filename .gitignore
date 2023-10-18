@@ -1,160 +1,71 @@
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-*$py.class
+def HamEncoding(msg):
+    m = len(msg)
+    k = 0
+    while 2 ** k < m + k + 1:
+        k += 1
+    encoded_msg = [0] * (m + k)
+    
+    # Initialize the positions of the parity bits
+    parity_positions = [2 ** i - 1 for i in range(k)]
+    
+    j = 0  # Index for the original data
+    for i in range(m + k):
+        if i in parity_positions:
+            # Calculate the parity bits
+            encoded_msg[i] = 0
+            for p in range(m):
+                if i & (2 ** p):
+                    encoded_msg[i] ^= int(msg[p])
+        else:
+            # Copy the original data bits
+            encoded_msg[i] = int(msg[j])
+            j += 1
+    
+    return ''.join(map(str, encoded_msg))
 
-# C extensions
-*.so
+def HamDecoding(rcv, k):
+    received_msg = list(map(int, rcv))
+    m = len(received_msg) - k
+    parity_positions = [2 ** i - 1 for i in range(k)]
+    
+    # Initialize the parity check bits
+    parity_check = [0] * k
+    for i in range(k):
+        for j in range(m + k):
+            if j & (2 ** i):
+                parity_check[i] ^= received_msg[j]
+    
+    error_position = sum(2 ** i for i in range(k) if parity_check[i])
+    
+    if error_position == 0:
+        return 'No error'
+    else:
+        # Correct the error
+        received_msg[error_position - 1] ^= 1
+        corrected_msg = ''.join(map(str, received_msg))
+        return f'Error at Position {error_position}, and correct data: {corrected_msg}'
 
-# Distribution / packaging
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
+# Examples and test cases
+org_sig1 = '1101'
+encoded_output1 = HamEncoding(org_sig1)
+print(f"Encoded Output 1: {encoded_output1}")
 
-# PyInstaller
-#  Usually these files are written by a python script from a template
-#  before PyInstaller builds the exe, so as to inject date/other infos into it.
-*.manifest
-*.spec
+org_sig2 = '1001011'
+encoded_output2 = HamEncoding(org_sig2)
+print(f"Encoded Output 2: {encoded_output2}")
 
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
+received_sig1 = '1010101'
+k = 3
+print(f"Decoding Result 1: {received_sig1} => {HamDecoding(received_sig1, k)}")
 
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.nox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.py,cover
-.hypothesis/
-.pytest_cache/
-cover/
+received_sig2 = '1010001'
+k = 3
+print(f"Decoding Result 2: {received_sig2} => {HamDecoding(received_sig2, k)}")
 
-# Translations
-*.mo
-*.pot
+received_sig3 = '10110010011'
+k = 4
+print(f"Decoding Result 3: {received_sig3} => {HamDecoding(received_sig3, k)}")
 
-# Django stuff:
-*.log
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
-
-# Flask stuff:
-instance/
-.webassets-cache
-
-# Scrapy stuff:
-.scrapy
-
-# Sphinx documentation
-docs/_build/
-
-# PyBuilder
-.pybuilder/
-target/
-
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# IPython
-profile_default/
-ipython_config.py
-
-# pyenv
-#   For a library or package, you might want to ignore these files since the code is
-#   intended to run in multiple environments; otherwise, check them in:
-# .python-version
-
-# pipenv
-#   According to pypa/pipenv#598, it is recommended to include Pipfile.lock in version control.
-#   However, in case of collaboration, if having platform-specific dependencies or dependencies
-#   having no cross-platform support, pipenv may install dependencies that don't work, or not
-#   install all needed dependencies.
-#Pipfile.lock
-
-# poetry
-#   Similar to Pipfile.lock, it is generally recommended to include poetry.lock in version control.
-#   This is especially recommended for binary packages to ensure reproducibility, and is more
-#   commonly ignored for libraries.
-#   https://python-poetry.org/docs/basic-usage/#commit-your-poetrylock-file-to-version-control
-#poetry.lock
-
-# pdm
-#   Similar to Pipfile.lock, it is generally recommended to include pdm.lock in version control.
-#pdm.lock
-#   pdm stores project-wide configurations in .pdm.toml, but it is recommended to not include it
-#   in version control.
-#   https://pdm.fming.dev/#use-with-ide
-.pdm.toml
-
-# PEP 582; used by e.g. github.com/David-OConnor/pyflow and github.com/pdm-project/pdm
-__pypackages__/
-
-# Celery stuff
-celerybeat-schedule
-celerybeat.pid
-
-# SageMath parsed files
-*.sage.py
-
-# Environments
-.env
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
-
-# Spyder project settings
-.spyderproject
-.spyproject
-
-# Rope project settings
-.ropeproject
-
-# mkdocs documentation
-/site
-
-# mypy
-.mypy_cache/
-.dmypy.json
-dmypy.json
-
-# Pyre type checker
-.pyre/
-
-# pytype static type analyzer
-.pytype/
-
-# Cython debug symbols
-cython_debug/
-
-# PyCharm
-#  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
-#  be found at https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore
-#  and can be added to the global gitignore or merged into this file.  For a more nuclear
-#  option (not recommended) you can uncomment the following to ignore the entire idea folder.
-#.idea/
+received_sig4 = '10110000011'
+k = 4
+print(f"Decoding Result 4: {received_sig4} => {HamDecoding(received_sig4, k)}")
